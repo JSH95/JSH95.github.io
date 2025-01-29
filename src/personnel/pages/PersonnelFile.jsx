@@ -1,37 +1,87 @@
 import React, { useState } from "react";
-import axios from "axios";
+import createAxiosInstance from "../../config/api";
+import {useNavigate, useParams} from "react-router-dom";
+export { FileUploadDownload as default };
 
-const FileUploadDownload = ({ applicantId }) => {
-  const [files, setFiles] = useState([]);
+export function FileUploadDownload(editedItem, setEditedItem) {
+
+  const { Id } = useParams();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0); // 업로드 진행 상태
   const [downloading, setDownloading] = useState(false);
+  const [files, setFiles] = useState({
+    resumeFileName1: [],
+    resumeFileName2: [],
+    resumeFileName3: []
+  }); // 모든 파일 상태 관리
+  // const [existingFile, setExistingFile]= useState(false);
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length > 3) {
-      alert("최대 3개의 파일만 업로드할 수 있습니다.");
-      return;
+
+  const handleFileChange = (event, type) => {
+
+    const selectedFiles = Array.from(event.target.files);
+
+    // if(!Array.isArray(editedItem.applicantFile)){
+    //   setExistingFile(false);
+    // } else {
+    //   setExistingFile(editedItem.applicantFile.find(
+    //       (file) => file.resumeType === type
+    //   ));
+    // }
+
+    const existingFile =
+        Array.isArray(editedItem.applicantFile) &&
+        editedItem.applicantFile.find((file) => file.resumeType === type);
+
+      if (existingFile) {
+        const confirmUpload = window.confirm(
+            `이미 ${existingFile.fileName} 파일이 저장되어 있습니다. 업로드를 진행하시겠습니까?`
+        );
+
+        if (!confirmUpload) {
+          // 사용자가 취소를 누르면 파일 선택을 초기화
+          event.target.value = null;
+          return; // 업로드를 진행하지 않음
+        }
     }
-    setFiles(selectedFiles);
+
+    setFiles((prevFiles) => ({
+      ...prevFiles,
+      [type]: selectedFiles, // 선택된 파일을 해당 타입에 저장
+    }));
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) {
+    if (files.resumeFileName1.length === 0 &&
+        files.resumeFileName2.length === 0 &&
+        files.resumeFileName3.length === 0) {
       alert("파일을 선택해주세요.");
       return;
     }
 
     const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append(`file${index + 1}`, file);
+    // 각 파일과 타입을 함께 전송
+    files.resumeFileName1.forEach((file) => {
+      formData.append("files", file);
+      formData.append("resumeTypes", "resumeFileName1");
+    });
+    // resume2에 해당하는 파일을 추가
+    files.resumeFileName2.forEach((file) => {
+      formData.append("files", file);
+      formData.append("resumeTypes", "resumeFileName2");
+    });
+    // resume3에 해당하는 파일을 추가
+    files.resumeFileName3.forEach((file) => {
+      formData.append("files", file);
+      formData.append("resumeTypes", "resumeFileName3");
     });
 
     setUploading(true);
     setProgress(0); // 초기화
 
     try {
-      await axios.post(`/applicant/${applicantId}/upload`, formData, {
+      const axiosInstance = createAxiosInstance();
+      const response = await axiosInstance.post(`/personnel/applicant/${Id}/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -42,9 +92,20 @@ const FileUploadDownload = ({ applicantId }) => {
           setProgress(percentCompleted);
         },
       });
+
       alert("파일 업로드 성공!");
-      setFiles([]); // 업로드 성공 후 파일 초기화
-    } catch (error) {
+
+      setEditedItem((prev) => ({
+        ...prev,
+        applicantFile: response.data || [], // 데이터가 없으면 빈 배열
+      }));
+
+      //초기화
+      setFiles({
+        resumeFileName1: [],
+        resumeFileName2: [],
+        resumeFileName3: [] });
+      } catch (error) {
       console.error("파일 업로드 실패:", error);
       alert("파일 업로드 중 오류가 발생했습니다.");
     } finally {
@@ -56,16 +117,25 @@ const FileUploadDownload = ({ applicantId }) => {
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const response = await axios.get(`/applicant/${applicantId}/download`, {
-        responseType: "blob",
+      const axiosInstance = createAxiosInstance();
+
+      // 파일 다운로드 요청
+      const response = await axiosInstance.get(`/personnel/applicant/${Id}/download`, {
+        responseType: "blob", // 응답을 Blob 형식으로 처리
       });
+
+      // Blob을 URL로 변환하여 다운로드 처리
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "files.zip"); // 압축 파일로 가정
+      link.setAttribute("download",  "지원자_이력서.zip"); // 파일명 설정
       document.body.appendChild(link);
       link.click();
       link.remove();
+
+      // 다운로드 완료 후 URL 객체를 해제하여 메모리 관리
+      window.URL.revokeObjectURL(url);
+
     } catch (error) {
       console.error("파일 다운로드 실패:", error);
       alert("파일 다운로드 중 오류가 발생했습니다.");
@@ -74,77 +144,34 @@ const FileUploadDownload = ({ applicantId }) => {
     }
   };
 
-  return (
-    <div className="file-upload-download-container">
-      <h3>파일 업로드 및 다운로드</h3>
-      <div>
-        <label htmlFor="file-upload" style={{ display: "block", marginBottom: "10px" }}>
-          파일 선택 (최대 3개)
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          multiple
-          accept=".jpg,.png,.pdf,.zip" // 필요에 따라 확장자 제한
-          onChange={handleFileChange}
-        />
-        <div style={{ marginTop: "10px" }}>
-          {files.length > 0 &&
-            files.map((file, index) => <p key={index}>{file.name}</p>)}
-        </div>
-      </div>
-      <div style={{ marginTop: "20px" }}>
-        {uploading && (
-          <div style={{ marginBottom: "10px" }}>
-            <p>업로드 진행 중: {progress}%</p>
-            <div
-              style={{
-                width: "100%",
-                backgroundColor: "#e0e0e0",
-                borderRadius: "5px",
-              }}
-            >
-              <div
-                style={{
-                  width: `${progress}%`,
-                  backgroundColor: "#4caf50",
-                  height: "10px",
-                  borderRadius: "5px",
-                }}
-              ></div>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={handleUpload}
-          disabled={uploading || files.length === 0}
-          style={{
-            marginRight: "10px",
-            backgroundColor: uploading ? "#ccc" : "#4caf50",
-            color: "#fff",
-            padding: "10px 15px",
-            border: "none",
-            cursor: uploading ? "not-allowed" : "pointer",
-          }}
-        >
-          {uploading ? "업로드 중..." : "업로드"}
-        </button>
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          style={{
-            backgroundColor: downloading ? "#ccc" : "#2196f3",
-            color: "#fff",
-            padding: "10px 15px",
-            border: "none",
-            cursor: downloading ? "not-allowed" : "pointer",
-          }}
-        >
-          {downloading ? "다운로드 중..." : "다운로드"}
-        </button>
-      </div>
-    </div>
-  );
-};
+  //id값을 가져와서 파일 삭제 쿼리 발송
+  const fileDelete = async (fileId) => {
+    const confirmDelete2 = window.confirm("파일을 삭제하시겠습니까?");
+    if (!confirmDelete2) return;
+    try {
+      const axiosInstance = createAxiosInstance();
+      await axiosInstance.delete(`/personnel/applicant/${fileId}/fileDelete`);
+      alert("파일 삭제 성공!");
+      setEditedItem((prevItem) => ({
+        ...prevItem,
+        applicantFile: prevItem.applicantFile.filter((file) => file.id !== fileId),
+      }));
+    } catch (error) {
+      console.error("파일 삭제 실패:", error);
+      alert("파일 삭제 중 오류가 발생했습니다.");
+    }
 
-export default FileUploadDownload;
+  }
+
+  return {
+    handleFileChange,
+    handleUpload,
+    handleDownload,
+    uploading,
+    progress,
+    downloading,
+    files,
+    fileDelete,
+  };
+}
+

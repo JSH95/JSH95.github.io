@@ -20,6 +20,13 @@ import PersonnelDashboard from "./personnel/pages/PersonnelDashboard";
 import YearDashboard from "./calcul/pages/YearDashboard";
 import PersonnelDetail from "./personnel/pages/PersonnelDetail";
 import PersonnelRegi from "./personnel/pages/PersonnelRegi";
+import PersonnelFile from "./personnel/pages/PersonnelFile";
+import PersonnelInsititutionList from "./personnel/pages/PersonnelInsititutionList";
+import PersonnelInstitutionDetail from "./personnel/pages/PersonnelInstitutionDetail";
+import PersonneScheduleEdit from "./personnel/pages/PersonneScheduleEdit";
+import PersonneScheduleRegi from "./personnel/pages/PersonnelScheduleRegi";
+import PersonnelInstitutionSchedule from "./personnel/pages/PersonnelInstitutionSchedule";
+import PersonnelInsititutionRegi from "./personnel/pages/PersonnelInsititutionRegi";
 const Layout = ({ children }) => (
     <>
         <Navbar />
@@ -123,10 +130,66 @@ const App = () => {
                     }
                 />
                 <Route
-                    path="/applicant/applicant/new"
+                    path="/personnel/applicant/new"
                     element={
                         <ProtectedRoute>
                             <PersonnelRegi />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/applicant/:Id/files"
+                    element={
+                        <ProtectedRoute>
+                            <PersonnelFile />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/list"
+                    element={
+                        <ProtectedRoute>
+                            <PersonnelInsititutionList />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/:Id"
+                    element={
+                        <ProtectedRoute>
+                            <PersonnelInstitutionDetail/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/:Id/schedule/:scheduleId"
+                    element={
+                        <ProtectedRoute>
+                            <PersonneScheduleEdit/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/:Id/schedule/new"
+                    element={
+                        <ProtectedRoute>
+                            <PersonneScheduleRegi/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/schedule/list"
+                    element={
+                        <ProtectedRoute>
+                            <PersonnelInstitutionSchedule/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/personnel/institution/new"
+                    element={
+                        <ProtectedRoute>
+                            <PersonnelInsititutionRegi/>
                         </ProtectedRoute>
                     }
                 />

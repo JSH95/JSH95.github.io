@@ -64,6 +64,7 @@ h2,
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /*text-align: right;*/
 }@media (max-width: 769px) {
   .detail-container {
     padding: 10px;
@@ -117,9 +118,9 @@ select:focus {
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  margin: 10px 0;
+  margin: 10px 10px;
   text-align: center;
-  float: right;
+  /*float: right;*/
   flex-shrink: 0;
 }
 

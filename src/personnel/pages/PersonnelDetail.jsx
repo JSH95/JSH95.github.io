@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import createAxiosInstance from "../../config/api";
 import "../../config/index.css";
 import {InstitutionListApi} from "../utils/InstitutionListApi";
+import {FileUploadDownload} from "./PersonnelFile";
 
 function PersonnelDetail() {
   const { Id } = useParams();
@@ -11,8 +12,16 @@ function PersonnelDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [editedItem, setEditedItem] = useState({});
-  const { loadList, institutionList, instloading, insterror } = InstitutionListApi();
+  const [editedItem, setEditedItem] = useState({
+    applicantFile: [], // 초기값을 빈 배열로 설정
+  });
+  const { loadList, institutionList} = InstitutionListApi();
+
+  const {
+    uploading, progress, downloading ,handleUpload, handleDownload, handleFileChange, files, fileDelete
+  } = FileUploadDownload(editedItem, setEditedItem);
+
+
 
   useEffect(() => {
     const fetchPersonnel = async () => {
@@ -79,9 +88,8 @@ function PersonnelDetail() {
     navigate(-1);
   };
 
-  // 지원자 삭제 시 퇴직일 여부 판단하여 삭제 진행
   const handleDelete = async (id) => {
-      const confirmDelete = window.confirm("직원을 삭제하시겠습니까?");
+      const confirmDelete = window.confirm("지원자를 삭제하시겠습니까?");
       if (!confirmDelete) return;
     try {
       const axiosInstance = createAxiosInstance(); // 인스턴스 생성
@@ -99,6 +107,8 @@ function PersonnelDetail() {
       console.error(err);
     }
   };
+
+
 
   if (loading) return <p style={styles.errorMessage}>Loading...</p>;
   if (error) return <p style={styles.errorMessage}>{error}</p>;
@@ -221,6 +231,148 @@ function PersonnelDetail() {
                     required
                   />
                 </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>지원 상태</label>
+                  <select
+                      style={styles.input}
+                      name="admissionStatus"
+                      value={editedItem.admissionStatus}
+                      onChange={handleChange}
+                      className="input"
+                      required
+                  >
+                    <option value="" disabled>
+                      해당하는 지원상태를 선택해 주세요.
+                    </option>
+                    <option value="지원중">지원중</option>
+                    <option value="일차합격">일차합격</option>
+                    <option value="이차합격">이차합격</option>
+                    <option value="내정중">내정중</option>
+                    <option value="내정확정">내정확정</option>
+                    <option value="최종합격">최종합격</option>
+                    <option value="불합격">불합격</option>
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>지원자 메모</label>
+                  <textarea
+                      type="text"
+                      style={styles.input}
+                      name="log"
+                      value={editedItem.log}
+                      onChange={handleChange}
+                      className="input"
+                      rows="10"
+                      cols="50"
+                  />
+                </div>
+                <div>
+                  <h3>파일 업로드</h3>
+                  <div>
+                    <input
+                        id="file-upload-type2"
+                        type="file"
+                        accept=".jpg,.png,.pdf" // 필요에 따라 확장자 제한
+                        onChange={(e) => handleFileChange(e, "resumeFileName1")}
+                    />
+                    <div>
+                      {["resumeFileName1"].map((resumeType, index) => {
+                        const file = editedItem.applicantFile?.find((file) => file.resumeType === resumeType);
+
+                        if (file) {
+                          return (
+                              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span>{file.fileName}</span>
+                                <button style={styles.actionButton} onClick={() => fileDelete(file.id)}>삭제</button>
+                              </div>
+                          );
+                        }
+
+                        return <p key={index}>파일이 없습니다.</p>;
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <input
+                        id="file-upload-type2"
+                        type="file"
+                        accept=".jpg,.png,.pdf"
+                        onChange={(e) => handleFileChange(e, "resumeFileName2")} // 파일을 처리하는 함수
+                    />
+                    <div>
+                      {["resumeFileName2"].map((resumeType, index) => {
+                        const file = editedItem.applicantFile?.find((file) => file.resumeType === resumeType);
+
+                        if (file) {
+                          return (
+                              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span>{file.fileName}</span>
+                                <button style={styles.actionButton} onClick={() => fileDelete(file.id)}>삭제</button>
+                              </div>
+                          );
+                        }
+
+                        return <p key={index}>파일이 없습니다.</p>;
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <input
+                        id="file-upload-type3"
+                        type="file"
+                        accept=".jpg,.png,.pdf"
+                        onChange={(e) => handleFileChange(e, "resumeFileName3")} // 파일을 처리하는 함수
+                    />
+                    <div>
+                      {["resumeFileName3"].map((resumeType, index) => {
+                        const file = editedItem.applicantFile?.find(
+                            (file) => file.resumeType === resumeType
+                        );
+
+                        if (file) {
+                          return (
+                              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span>{file.fileName}</span>
+                                <button style={styles.actionButton} onClick={() => fileDelete(file.id)}>삭제</button>
+                              </div>
+                          );
+                        }
+
+                        return <p key={index}>파일이 없습니다.</p>;
+                      })}
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "20px" }}>
+                    {uploading && (
+                        <div style={{ marginBottom: "10px" }}>
+                          <p>업로드 진행 중: {progress}%</p>
+                          <div
+                              style={{
+                                width: "100%",
+                                backgroundColor: "#e0e0e0",
+                                borderRadius: "5px",
+                              }}
+                          >
+                            <div
+                                style={{
+                                  width: `${progress}%`,
+                                  backgroundColor: "#4caf50",
+                                  height: "10px",
+                                  borderRadius: "5px",
+                                }}
+                            ></div>
+                          </div>
+                        </div>
+                    )}
+                    <button
+                        onClick={handleUpload}
+                        disabled={uploading || files.length === 0}
+                        style={styles.actionButton}
+                    >
+                      {uploading ? "업로드 중..." : "업로드"}
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
@@ -265,6 +417,31 @@ function PersonnelDetail() {
                     <div style={styles.box}>
                         <p>{item.joiningDate}</p>
                     </div>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>지원 상태</label>
+                  <div style={styles.box}>
+                    <p>{item.admissionStatus}</p>
+                  </div>
+                </div>
+                <div>
+                <label style={styles.label}>파일 다운로드</label>
+                <div style={{ marginTop: "10px" , marginBottom: "10px"}}>
+                  <button
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      style={styles.actionButton}
+                  >
+                    {downloading ? "다운로드 중..." : "다운로드"}
+                  </button>
+                </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>지원자 메모</label>
+                    <div style={styles.box}>
+                      <p style={{ whiteSpace: 'pre-wrap' }}>{item.log}</p>
+                    </div>
+                  </div>
+
                 </div>
               </>
             )}

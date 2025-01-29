@@ -50,7 +50,11 @@ function PersonnelDashboard() {
   }, [isFetched]);
 
   const handleRowClick = () => {
-    navigate(`/applicant/applicant/new`);
+    navigate(`/personnel/applicant/new`);
+  };
+
+  const handleRowClick2 = () => {
+    navigate(`/personnel/institution/list`);
   };
 
   const handleEmployeeClick = (Id) => {
@@ -63,6 +67,9 @@ function PersonnelDashboard() {
       <h1 className="title">WEAVUS 지원자 리스트</h1>
       <button className="submit-button" onClick={() => handleRowClick()}>
         지원자 등록
+      </button>
+      <button className="submit-button" onClick={() => handleRowClick2()}>
+        회사 목록 확인
       </button>
       {loading && <div className="loading">Loading...</div>}
       {error && <div className="error-message">{error}</div>}

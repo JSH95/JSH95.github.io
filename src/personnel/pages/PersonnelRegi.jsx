@@ -5,11 +5,18 @@ import {InstitutionListApi} from "../utils/InstitutionListApi";
 
 function PersonnelRegi() {
   const [formData, setFormData] = useState({
+    name: "",
+    gender: "",
+    email: "",
+    birthDate: "",
+    phoneNumber: "",
+    institutionId: "",
+    joiningDate: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [responseMessage, setResponseMessage] = useState("");
-  const { loadList, institutionList, instloading, insterror } = InstitutionListApi();
+  const { loadList, institutionList} = InstitutionListApi();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,6 +44,13 @@ function PersonnelRegi() {
         const response = await axiosInstance.post("/personnel/applicant/add", formData);
         setResponseMessage(response.data);
         setFormData({
+          name: "",
+          gender: "",
+          email: "",
+          birthDate: "",
+          phoneNumber: "",
+          institutionId: "",
+          joiningDate: "",
         });
       } catch (err) {
         if (err.response) {
@@ -46,7 +60,8 @@ function PersonnelRegi() {
         } else {
           setError("등록 실패 : ${err.message}");
         }
-      } finally {
+      }
+      finally {
         setLoading(false);
       }
   };
@@ -115,7 +130,7 @@ function PersonnelRegi() {
           <div className="form-group">
             <label>휴대폰번호</label>
             <input
-              type="phone"
+              type="text"
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
@@ -126,9 +141,8 @@ function PersonnelRegi() {
       <div className="form-group">
         <label>소속 기관</label>
         <select
-            type="number"
             name="institutionId"
-            value={formData.institutionId}
+            value={formData.institutionId || ""}
             onChange={handleChange}
             required
             className="input"
@@ -161,7 +175,7 @@ function PersonnelRegi() {
           />
         </div>
         <button type="submit" disabled={loading} className="submit-button">
-          {loading ? "등록 중..." : "직원 등록"}
+          {loading ? "등록 중..." : "지원자 등록"}
         </button>
       </form>
     </div>

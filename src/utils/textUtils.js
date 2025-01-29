@@ -15,6 +15,9 @@ export const getStateText = (state) => {
 
 // 직원 유형에 따른 텍스트 반환
 export const getEmployeeTypeText = (employeeType, status, exitDate) => {
+  const now = new Date();
+  const exitDateObject = exitDate ? new Date(exitDate) : null;
+
   if (status == 0 && exitDate ==null) {
     switch (employeeType) {
       case "CONTRACT":
@@ -24,7 +27,11 @@ export const getEmployeeTypeText = (employeeType, status, exitDate) => {
       default:
         return "알 수 없음";
     }
+  } else if (exitDateObject && exitDateObject > now) {
+    // 퇴사 예정자
+    return "퇴사 예정자";
   } else {
+    // 퇴사자
     return "퇴사자";
   }
 };

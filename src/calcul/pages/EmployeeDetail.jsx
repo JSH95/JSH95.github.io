@@ -269,9 +269,7 @@ function EmployeeDetail() {
               <button
                 style={{ ...styles.actionButton, ...styles.actionButtonDanger }}
                 onClick={() => handleDelete(item.id)}
-              >
-                삭제
-              </button>
+              >삭제</button>
             )}
             <button style={styles.actionButton} onClick={handleGoBack}>
               돌아가기
